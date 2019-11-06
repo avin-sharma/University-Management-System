@@ -132,7 +132,6 @@ class University:
         self.get_instructors()
         self.update_course_info()
         self.get_majors()
-        print(self.majors)
     
     def get_majors(self):
         """ Reads a majors details from a file and adds courses to them. """
@@ -180,10 +179,26 @@ class University:
     
     def __str__(self):
         student_table = PrettyTable()
-        student_table.field_names = ['CWID', 'Name', 'Completed Courses']
+        student_table.field_names = ['CWID', 'Name', 'Major', 'Completed Courses', 'Remaining Required', 'Remaining Electives']
+
         for key in self.students:
             student = self.students[key]
-            student_table.add_row([student.cwid, student.name, sorted(list(student.courses_completed))])
+            cwid = student.cwid
+            name = student.name
+            major = student.major
+            if major not in self.majors:
+                raise ValueError('{} is not a valid major. Please fix the student record of student with ID: {} or add the major to majors.txt'.format(major, cwid))
+            
+            courses_completed = sorted(list(student.courses_completed))
+
+            required = sorted(self.majors[major].get_remaining_required_courses(student))
+            if len(required) == 0:
+                required = None
+
+            electives = sorted(self.majors[major].get_remaining_elective_courses(student))
+            if len(electives) == 0:
+                electives = None
+            student_table.add_row([cwid, name, major, courses_completed, required, electives])
         
         instructor_table = PrettyTable()
         instructor_table.field_names = ['CWID', 'Name', 'Deptartment', 'Course', 'Students']
@@ -192,7 +207,14 @@ class University:
             for course in instructor.courses_taught:
                 instructor_table.add_row([instructor.cwid, instructor.name, instructor.department, course, instructor.student_count[course]])
         
-        return student_table.get_string() + '\n' + instructor_table.get_string()
+        majors_table = PrettyTable()
+        majors_table.field_names = ['Dept', 'Required', 'Electives']
+        for major in self.majors:
+            required = sorted(self.majors[major].required_courses)
+            electives = sorted(self.majors[major].elective_courses)
+            majors_table.add_row([major, required, electives])
+
+        return 'Student Summary\n' + student_table.get_string() + '\n\nInstructor Summary\n' + instructor_table.get_string() + '\n\nMajors Summary\n' + majors_table.get_string()
 
     def update_course_info(self):
         """
