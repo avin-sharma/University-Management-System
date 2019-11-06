@@ -1,6 +1,7 @@
 import os
 from collections import defaultdict
 from prettytable import PrettyTable
+from typing import Set
 
 class Student:
     """
@@ -56,6 +57,57 @@ class Instructor:
     def __str__(self):
         return "CWID: {}, Name: {}, Department: {}, Courses Taught: {}, Student_Count: {}".format(self.cwid, self.name, self.department, self.courses_taught, self.student_count)
 
+class Major:
+    """
+    Contains required courses and electives of a major.
+
+    Attributes:
+        required_courses (set): A set of all the required courses for this major
+        elective_courses (set): A set of all the electives offered
+    """
+    def __init__(self):
+        self.required_courses = set()
+        self.elective_courses = set()
+    
+    def add(self, flag, course):
+        """
+        Adds a new course to required/elective courses according to the flag passed.
+
+        Args:
+            flag (str): 'R' or 'E' for required course or elective course respectively.
+            course (str): Name of the course to be added to the Major's course list.
+        """
+        if flag == 'R':
+            self.required_courses.add(course)
+        else:
+            self.elective_courses.add(course)
+    
+    def get_remaining_required_courses(self, student: Student) -> Set[str]:
+        """
+        Finds remaining required courses for a student.
+
+        Args:
+            student (Student): Student whose remaining courses we are trying to find.
+        
+        Return:
+            Set of remaining required courses.
+        """
+        return self.required_courses - student.courses_completed
+    
+    def get_remaining_elective_courses(self, student: Student) -> Set[str]:
+        """
+        Finds remaining elective courses for a student.
+
+        Args:
+            student (Student): Student whose remaining courses we are trying to find.
+        
+        Return:
+            Set of all electives if none of the electives are completed otherwise empty set is returned.
+        """
+        return self.elective_courses if self.elective_courses.isdisjoint(student.courses_completed) else set()
+
+
+
 class University:
     """
     Contains all the students and instructors of a University.
@@ -75,15 +127,33 @@ class University:
         self.path = university_files_path
         self.students = {}                  # CWID -> Student
         self.instructors = {}               # CWID -> Instructor
+        self.majors = defaultdict(Major)    # Major(str) -> Major(class)
         self.get_students()
         self.get_instructors()
         self.update_course_info()
+        self.get_majors()
+        print(self.majors)
+    
+    def get_majors(self):
+        """ Reads a majors details from a file and adds courses to them. """
+        majors_file = os.path.join(self.path, "majors.txt")
+        try:
+            for major in file_reading_gen(majors_file, 3, '\t', True):
+                # Major | Flag | Course
+                name = major[0]
+                flag = major[1]
+                course = major[2]
+
+                self.majors[name].add(flag, course)
+
+        except ValueError:
+            raise ValueError("Invalid data in majors.txt")
 
     def get_students(self):
         """Reads student details from a file and saves them."""
         students_file = os.path.join(self.path, "students.txt")
         try:
-            for student in file_reading_gen(students_file, 3, '\t'):
+            for student in file_reading_gen(students_file, 3, ';', True):
                 # CWID | Name | Major
                 cwid = student[0]
                 name = student[1]
@@ -99,7 +169,7 @@ class University:
         """
         instructor_file = os.path.join(self.path, "instructors.txt")
         try:
-            for instructor in file_reading_gen(instructor_file, 3, '\t'):
+            for instructor in file_reading_gen(instructor_file, 3, '|'):
                 # CWID | Name | Dept
                 cwid = instructor[0]
                 name = instructor[1]
@@ -131,7 +201,7 @@ class University:
         """
         grades_file = os.path.join(self.path, "grades.txt")
         try:
-            for info in file_reading_gen(grades_file, 4, '\t'):
+            for info in file_reading_gen(grades_file, 4, '|', True):
                 # StudentID | Course | Grade | InstructorID
                 student_id = info[0]
                 course_code = info[1]
@@ -156,8 +226,22 @@ class University:
         
 
 
-def file_reading_gen(path, fields, sep=',', header=False):
-    """ Yield fileds from a file seperated by the provided seperator"""
+def file_reading_gen(path: str, fields: int, sep: str = ',', header: bool =False):
+    """ 
+    Reads fields from a file seperated by the provided seperator.
+
+    Args:
+        path (str): path of the file we want to read.
+        fields (int): Number of fields expected in the file we are reading.
+        sep (str): Separator that separates the fields from one another.
+        header (bool): Signifies if there is a header in the file being passed to read.
+    
+    Yields:
+        Tuple of data after separation.
+    
+    Raises:
+        ValueError: When we encounter a different number of fields than expected.
+    """
     
     with open(path) as f:
         if header:
