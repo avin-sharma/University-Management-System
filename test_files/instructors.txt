@@ -1,0 +1,2 @@
+100	Vegeta	CS
+200	Goku	FE
