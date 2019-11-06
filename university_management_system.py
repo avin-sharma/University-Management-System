@@ -82,24 +82,31 @@ class University:
     def get_students(self):
         """Reads student details from a file and saves them."""
         students_file = os.path.join(self.path, "students.txt")
-        for student in file_reading_gen(students_file, 3, '\t'):
-            # CWID | Name | Major
-            cwid = student[0]
-            name = student[1]
-            major = student[2]
-            self.students[cwid] = Student(cwid, name, major)
+        try:
+            for student in file_reading_gen(students_file, 3, '\t'):
+                # CWID | Name | Major
+                cwid = student[0]
+                name = student[1]
+                major = student[2]
+                self.students[cwid] = Student(cwid, name, major)
+        except ValueError:
+            raise ValueError("Invalid data in students.txt")
+        
 
     def get_instructors(self):
         """
         Reads student details from a file and saves them.
         """
         instructor_file = os.path.join(self.path, "instructors.txt")
-        for instructor in file_reading_gen(instructor_file, 3, '\t'):
-            # CWID | Name | Dept
-            cwid = instructor[0]
-            name = instructor[1]
-            dept = instructor[2]
-            self.instructors[cwid] = Instructor(cwid, name, dept)
+        try:
+            for instructor in file_reading_gen(instructor_file, 3, '\t'):
+                # CWID | Name | Dept
+                cwid = instructor[0]
+                name = instructor[1]
+                dept = instructor[2]
+                self.instructors[cwid] = Instructor(cwid, name, dept)
+        except ValueError:
+            raise ValueError("Invalid data in instructors.txt")
     
     def __str__(self):
         student_table = PrettyTable()
