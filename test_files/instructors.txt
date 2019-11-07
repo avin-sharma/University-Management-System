@@ -1,2 +1,2 @@
-100	Vegeta	CS
-200	Goku	FE
+100	Prof1	CS
+200	Prof2	FE
