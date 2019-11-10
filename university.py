@@ -51,6 +51,8 @@ class University:
 
         except ValueError:
             raise ValueError("Invalid data in majors.txt")
+        except FileNotFoundError as e:
+            print('Missing majors.txt.\n' + str(e))
 
     def get_students(self, student_file_info):
         """Reads student details from a file and saves them."""
@@ -65,7 +67,8 @@ class University:
                 self.students[cwid] = Student(cwid, name, major)
         except ValueError:
             raise ValueError("Invalid data in students.txt")
-        
+        except FileNotFoundError as e:
+            print('Missing students.txt.\n' + str(e))
 
     def get_instructors(self, instructor_file_info):
         """
@@ -82,6 +85,8 @@ class University:
                 self.instructors[cwid] = Instructor(cwid, name, dept)
         except ValueError:
             raise ValueError("Invalid data in instructors.txt")
+        except FileNotFoundError as e:
+            print('Missing instructor.txt.\n' + str(e))
 
     def update_course_info(self, grades_file_info):
         """
@@ -113,6 +118,8 @@ class University:
                 instructor.student_count[course_code] += 1
         except ValueError:
             raise ValueError("Invalid data in grades.txt")
+        except FileNotFoundError as e:
+            print('Missing grades.txt.\n' + str(e))
     
     def update_tables(self):
         self.student_table = PrettyTable()
@@ -124,7 +131,7 @@ class University:
             name = student.name
             major = student.major
             if major not in self.majors:
-                raise ValueError('{} is not a valid major. Please fix the student record of student with ID: {} or add the major to majors.txt'.format(major, cwid))
+                raise KeyError('{} is not a valid major. Please fix the student record of student with ID: {} or add the major to majors.txt'.format(major, cwid))
             
             courses_completed = sorted(list(student.courses_completed))
 
