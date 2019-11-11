@@ -1,3 +1,4 @@
+import sqlite3
 import os
 from collections import defaultdict
 from prettytable import PrettyTable
@@ -22,8 +23,12 @@ class University:
         instructors (dict): (CWID -> Instructors) that contains all the
             Instructors of the university mapped to their CWID.
     """
-    def __init__(self, university_files_path, student_file_info, instructor_file_info, grades_file_info, majors_file_info):
+    def __init__(self, university_files_path, student_file_info, instructor_file_info, grades_file_info, majors_file_info, db_path):
         self.path = university_files_path
+        if os.path.exists(db_path):
+            self.db_path = db_path
+        else:
+            raise FileNotFoundError('No database found at {}'.format(db_path))
         self.students = {}                  # CWID -> Student
         self.instructors = {}               # CWID -> Instructor
         self.majors = defaultdict(Major)    # Major(str) -> Major(class)
@@ -120,6 +125,16 @@ class University:
             raise ValueError("Invalid data in grades.txt")
         except FileNotFoundError as e:
             print('Missing grades.txt.\n' + str(e))
+
+    def instructor_table_db(self):
+        instructor_table = PrettyTable()
+        instructor_table.field_names = ['CWID', 'Name', 'Deptartment', 'Course', 'Students']
+
+        db = sqlite3.connect(self.db_path)
+        for row in db.execute('select i.cwid, i.name, dept, g.course, count(*) as Students from instructors i join grades g on i.cwid = g.instructorcwid group by i.name, g.course;'):
+            instructor_table.add_row([row[0], row[1], row[2], row[3], row[4]])
+        
+        return instructor_table
     
     def update_tables(self):
         self.student_table = PrettyTable()
