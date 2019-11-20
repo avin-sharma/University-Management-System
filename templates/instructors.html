@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block body %}
+    <h1>{{title}}</h1>
+    <table border="1">
+        <th>CWID</th>
+        <th>Name</th>
+        <th>Department</th>
+        <th>Course</th>
+        <th>Student</th>
+        {% for entry in instructors %}
+        <tr>
+            <td>{{entry.cwid}}</td>
+            <td>{{entry.name}}</td>
+            <td>{{entry.dept}}</td>
+            <td>{{entry.course}}</td>
+            <td>{{entry.students}}</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

@@ -136,6 +136,12 @@ class University:
         
         return instructor_table
     
+    def get_instructors_table_dicts(self):
+        db = sqlite3.connect(self.db_path)
+
+        query = 'select i.cwid, i.name, dept, g.course, count(*) as Students from instructors i join grades g on i.cwid = g.instructorcwid group by i.name, g.course;'
+        return [{'cwid': cwid, 'name': name, 'dept': dept, 'course': course, 'students': stu} for cwid, name, dept, course, stu in db.execute(query)]
+
     def update_tables(self):
         self.student_table = PrettyTable()
         self.student_table.field_names = ['CWID', 'Name', 'Major', 'Completed Courses', 'Remaining Required', 'Remaining Electives']
